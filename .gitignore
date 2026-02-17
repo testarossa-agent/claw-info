@@ -1,0 +1,39 @@
+# Private memory files (DO NOT COMMIT)
+MEMORY.md
+MEMORY.md.bak
+IDENTITY.md
+SOUL.md
+
+# Memory directory (local only)
+memory/
+!.gitignore
+
+# Local workspace files (optional, uncomment if needed)
+# .env
+# .env.*
+# *.env
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temp files
+tmp/
+temp/
+*.tmp
+
+# Node modules (optional, uncomment if needed)
+# node_modules/
