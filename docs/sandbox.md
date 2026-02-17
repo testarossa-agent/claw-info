@@ -181,6 +181,103 @@ openclaw sandbox recreate --all
 
 ---
 
+## 🌪️ Sandbox 災情總結（2026.2.15）
+
+> **核心問題**：2026.2.15 版本引入的 Sandbox 改動導致多個關鍵場景失效。
+
+### 發生災情的版本
+
+- **引入版本**：`2026.2.15`
+- **影響範圍**：使用 `sandbox.mode != "off"` + `elevated exec` + cron/nested sessions 的組合
+
+### 四大核心改動摘要
+
+| 星級 | 改動 | 說明 |
+|------|------|------|
+| ⭐️⭐️⭐️ | SHA-1 → SHA-256 | 沙箱配置雜湊演算法升級，影響緩存標識與重建檢查 |
+| ⭐️⭐️⭐️ | 阻止危險 Docker 設定 | 封鎖 bind mounts、host networking、unconfined seccomp/apparmor |
+| ⭐️ | 保留陣列順序於配置雜湊 | 修正順序敏感的 Docker 設定未觸發容器重建 |
+| ⭐️ | 澄清系統提示路徑 (#17693) | sandbox bash/exec 使用容器路徑 /workspace，檔案工具保持主機映射 |
+
+### 🔴 高影響 — 功能性災難
+
+| Issue | 標題 | 說明 | 影響 |
+|-------|------|------|------|
+| [#18748](https://github.com/openclaw/openclaw/issues/18748) | Elevated exec 在 cron 和 sessions_send 中失效 | sandbox 模式下，cron job 和跨 agent 訊息觸發的 exec(elevated=true) 全部失敗，即使 config 正確設定 `tools.elevated.enabled: true` 也沒用 | ⚠️ 多 agent + sandbox + cron 組合完全無法使用 elevated exec（如 gog、remindctl、memo 等工具） |
+| [#4171](https://github.com/openclaw/openclaw/issues/4171) | Cron isolated agent 沒傳 sandboxInfo 給 system prompt | agent 收到主機路徑而非容器路徑 `/workspace`，導致路徑錯誤、幻覺檔案 | ⚠️ cron job 的 agent 使用錯誤路徑，可能創建/讀取錯誤檔案 |
+| [#2432](https://github.com/openclaw/openclaw/issues/2432) | Read tool 不尊重 Docker bind mounts | 設了 `docker.binds` 但 agent 讀不到掛載的路徑 | ⚠️ 無法讀取 bind-mount 的資料夾內容 |
+| [#4368](https://github.com/openclaw/openclaw/issues/4368) | DEFAULT_SANDBOX_WORKSPACE_ROOT 忽略 MOLTBOT_STATE_DIR | 硬編碼 `~/.clawdbot/sandboxes`，不管你怎麼設環境變數 | ⚠️ 環境變數配置無效，路徑混亂 |
+
+### 🟡 中影響 — 安全性問題
+
+| Issue | 標題 | 說明 |
+|-------|------|------|
+| [#18766](https://github.com/openclaw/openclaw/issues/18766) | SKILL.md runtime 指令不受路徑限制 | install-time 有限制，但 runtime 階段 SKILL.md 可以指示 agent 讀寫任意路徑 |
+| [#18739](https://github.com/openclaw/openclaw/issues/18739) | Windows 上 exec tool 因 `detached: true` 導致 stdout 全空 | Windows 上所有 exec 指令回傳 `(no output)` |
+
+### 📊 影響評估
+
+| 使用場景 | 目前狀態 | 建議 |
+|---------|---------|------|
+| `sandbox.mode: "all"` + `elevated exec` + 直接互動 | ✅ 正常 | 無 |
+| `sandbox.mode: "all"` + `elevated exec` + cron job | ❌ 無法使用 | 暫時設定 `sandbox.mode: "off"` 或移除 elevated 需求 |
+| `sandbox.mode: "all"` + `elevated exec` + sessions_send | ❌ 無法使用 | 同上 |
+| `sandbox.mode: "all"` + `docker.binds` + read tool | ❌ 無法使用 | 暫時停用 bind mounts |
+| 多agent cron 工作流 | ⚠️ 部分失效 | 注意路徑錯誤問題 |
+
+### ✅ 已解決問題（關閉）
+
+| Issue | 狀態 | 說明 |
+|-------|------|------|
+| [#4807](https://github.com/openclaw/openclaw/issues/4807) | `not_planned` | sandbox-setup.sh 未包含在 npm 包中 |
+| [#5255](https://github.com/openclaw/openclaw/issues/5255) | 關閉 | browser file upload API 缺少路徑驗證 |
+
+### 🔧 Workarounds
+
+#### 1. Elevated exec 在 cron 中失效
+
+**暫解方案**：對需要 elevated exec 的 agent 關閉 sandbox
+
+```json
+{
+  "agents": {
+    "list": [{
+      "id": "scout",
+      "sandbox": {
+        "mode": "off"
+      },
+      "tools": {
+        "elevated": {
+          "enabled": true
+        }
+      }
+    }]
+  }
+}
+```
+
+**缺點**：失去 sandbox 安全隔離
+
+#### 2. Cron agent 路徑錯誤
+
+**暫解方案**：避免在 cron agent 中依賴工作目錄，明確使用 `/workspace` 路徑
+
+```bash
+# 在 SKILL.md 中，使用絕對路徑
+cd /workspace
+read: /workspace/data/input.txt
+```
+
+#### 3. Docker bind mounts 無法讀取
+
+**暫解方案**：暫時停用 bind mounts，或改用其他資料傳遞方式
+
+#### 4. Windows 上 exec 無 stdout
+
+**暫解方案**：使用 PowerShell 腳本檔案而非 inline command
+
+---
+
 ## 已知問題（Open Issues）
 
 ### 🔴 Critical
