@@ -339,10 +339,35 @@ Cron 作業失敗時的行為：
 
 ---
 
+## 已知問題（Open Issues）
+
+### 🔴 Bugs
+
+| Issue | 標題 | 說明 |
+|-------|------|------|
+| [#18120](https://github.com/openclaw/openclaw/issues/18120) | runningAtMs 永不自動清除 | Session timeout 後 runningAtMs 未清除，導致 cron 永久停止執行 |
+| [#17979](https://github.com/openclaw/openclaw/issues/17979) | cron tool 從 main session 呼叫超時 | cron.status WS frame 無回應，但 cron job 本身正常執行 |
+| [#17599](https://github.com/openclaw/openclaw/issues/17599) | WhatsApp delivery 間歇性失敗 | ~20% 機率出現 `cron delivery target is missing` 錯誤 |
+| [#16156](https://github.com/openclaw/openclaw/issues/16156) | 週期性 cron job 不執行 | `schedule.kind: "cron"` 只更新 nextRunAtMs 但不觸發執行 |
+| [#16054](https://github.com/openclaw/openclaw/issues/16054) | 自訂 provider 靜默重命名 | provider 名稱被改寫，導致 cron job 報 "model not allowed" |
+| [#14751](https://github.com/openclaw/openclaw/issues/14751) | cron list Gateway 超時 | `cron list` 回傳 60s+ 超時，但 job 正常執行 |
+| [#12440](https://github.com/openclaw/openclaw/issues/12440) | cron list 導致排程被跳過 | 呼叫 `cron list` 後 recomputeNextRuns() 跳過未執行的 job |
+
+### 🟢 Feature Requests
+
+| Issue | 標題 | 說明 |
+|-------|------|------|
+| [#13900](https://github.com/openclaw/openclaw/issues/13900) | Ephemeral Cron Sessions | 請求 cron session 執行後自動清除，避免 token 累積 |
+| [#13598](https://github.com/openclaw/openclaw/issues/13598) | Cron 故障排除手冊 | 請求新增 cron troubleshooting playbook 文件 |
+| [#12736](https://github.com/openclaw/openclaw/issues/12736) | tools.cron.tools.deny 設定 | 請求 cron job 層級的工具限制設定 |
+
+---
+
 ## 更新紀錄
 
+- **2026-02-17**：新增「已知問題」章節
 - **2026-02-16**：建立文件，涵蓋核心概念與範例
 
 ---
 
-*最後更新：2026-02-16*
+*最後更新：2026-02-17*
