@@ -79,6 +79,36 @@ OpenClaw 為了提高快取命中與避免不必要的抖動，會對每個 sess
 
 ---
 
+## 如何新增同一 Provider 的另一個 Profile（用 CLI）
+
+最直接的方法是**再跑一次該 provider 的登入/授權流程**，OpenClaw 會把新的憑證寫入同一份 `auth-profiles.json`，並以新的 `profileId`（常見形式：`provider:default` 或 `provider:<email>`）保存。
+
+### OAuth 類（例如 `openai-codex`）
+
+```bash
+# 重新跑一次 OAuth 流程以新增另一個帳號（會新增一個新的 profile）
+openclaw models auth login --provider openai-codex
+
+# 或走 onboarding 向導
+openclaw onboard --auth-choice openai-codex
+```
+
+提示：如果 provider 能取得 email，通常會產生 `openai-codex:you@example.com` 這類 ID；否則可能仍是 `openai-codex:default`。
+
+### API key 類（視 provider 支援）
+
+有些 provider 的 `models auth login` 會引導你貼上 API key；也可使用：
+
+```bash
+openclaw models auth add
+```
+
+> 部分 provider/流程支援用 `--profile-id <provider:xxx>` 明確指定要建立的 profile ID。若你想固定命名（例如 `anthropic:work` / `anthropic:personal`），建議查看該 provider 文件或 `openclaw models auth login --help`。
+
+新增完成後，建議用 `openclaw models status` 檢查 profiles 是否就位。
+
+---
+
 ## 如何強制使用特定 Profile？（避免自動輪換）
 
 ### 方式 A：設定 `auth.order[provider]`
