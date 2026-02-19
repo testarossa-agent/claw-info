@@ -41,13 +41,22 @@ Within each section, list items in descending order of star rating (⭐⭐⭐ fi
 Each item should follow this format:
 
 ```markdown
-### ⭐⭐⭐ Item Title (#PR_NUMBER)
+### ⭐⭐⭐ Item Title ([#PR_NUMBER](https://github.com/openclaw/openclaw/pull/PR_NUMBER))
 - **用途**: What this feature/fix does
 - **解決問題**: Problem it solves
 - **影響**: Impact and benefits
 ```
 
 Always include the PR/Issue number at the end.
+
+#### 引用格式（Link rule, recommended）
+
+- 在 release notes 內出現的 `#PR_NUMBER` / `#ISSUE_NUMBER` **一律要可點**（統一用 Markdown link）。
+  - Upstream OpenClaw PR：`[#12345](https://github.com/openclaw/openclaw/pull/12345)`
+  - `claw-info` 自己的 issue：`[#54](https://github.com/thepagent/claw-info/issues/54)`
+- GitHub 雖然常會自動把 `#54` 變成連結，但**建議仍用明確的 Markdown link** 以保持一致、避免漏連。
+
+此規則可讓讀者快速驗證來源、降低歧義。
 
 ### 5. Summary Table
 
