@@ -13,6 +13,9 @@
 
 ## 快速導覽
 
+- **Linux / systemd（運維）**
+  - [`linux_systemd.md`](./linux_systemd.md) — Linux（systemd）上 gateway 重啟、port 衝突與 model 設定踩坑
+
 - **Bedrock**
   - [`bedrock_auth.md`](./bedrock_auth.md) — Bedrock 認證與權限設定（含常見錯誤排查）
   - [`bedrock_pricing.md`](./bedrock_pricing.md) — Bedrock 計價概念與成本拆解
