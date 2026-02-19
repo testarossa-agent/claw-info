@@ -72,7 +72,25 @@ openclaw status
 ### 4.2 輸出示例
 
 - 若提供輸出示例，請標註「示意」，避免讀者誤把值當真。
-- 不要把敏感資訊寫進示例：token、cookie、私密 URL、真實 phone/chat id。
+
+#### 敏感資訊 Redaction（強制）
+
+GitHub issues/PR 與本 repo 文件屬 **公開內容**。任何輸出示例、log、或排錯截圖/文字都必須遮罩敏感資訊。
+
+**禁止貼出（請一律遮罩）：**
+
+- AWS Account ID（12 位數）→ 用 `<AWS_ACCOUNT_ID_REDACTED>`
+- AWS ARN / UserId / Role name → `<AWS_ARN_REDACTED>` / `<AWS_USER_ID_REDACTED>` / `<AWS_ROLE_NAME_REDACTED>`
+- token / refresh token / API keys / cookie
+- 私密 URL（含 device code URL）
+- 真實 phone/chat id（含 Telegram chat_id、message_id）
+
+**允許貼出：**
+
+- 指令本身（例如 `aws sts get-caller-identity --profile ...`）
+- 錯誤訊息關鍵字（例如 `Token has expired and refresh failed`）
+
+> 原則：文件要教「怎麼做」，不是曝光「你是誰」。
 
 ---
 
