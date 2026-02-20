@@ -1,5 +1,12 @@
 # How-to：Build agent-browser（PR #397）並連線 AWS Bedrock AgentCore Browser
 
+```text
+Agent Prompt（可直接貼給你的 Agent）
+
+請閱讀並依序執行這份文件，目標是把我整個環境配置到「最終可穩定訪問 https://x.com/home（已登入狀態）」：
+https://github.com/thepagent/claw-info/blob/main/docs/howto/agent-browser-agentcore.md
+```
+
 ## 背景：為何要把 agent-browser × AgentCore Browser 串起來？
 
 在 OpenClaw 的使用情境裡，**讓 Agent 能穩定操作瀏覽器**（打開網站、登入、點擊、輸入、擷取資料、產生摘要/報告）一直是非常核心、且高頻的需求。
