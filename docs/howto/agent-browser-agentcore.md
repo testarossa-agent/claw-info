@@ -216,7 +216,64 @@ agent-browser install --with-deps
 
 ---
 
-## 5. 用 AgentCore provider 連線（推薦）
+## 5. 第一次使用：用 AWS CLI 建立並驗證可持久化的 Profile（推薦）
+
+這段流程的目標是：在你開始用 `agent-browser` 前，先用 AWS CLI + Console 確認 **AgentCore Browser 的 session / Live View / Profile persistence** 都正常。
+
+### 5.1 Step 1：用 AWS CLI 開一個 session（綁定 `<AGENTCORE_PROFILE_ID>`）
+
+> 注意：Bedrock AgentCore 的 Data Plane CLI **沒有** `create-browser-profile`；`<AGENTCORE_PROFILE_ID>` 是你自行決定的 identifier。
+
+```bash
+aws bedrock-agentcore start-browser-session \
+  --browser-identifier aws.browser.v1 \
+  --profile-configuration '{"profileIdentifier":"<AGENTCORE_PROFILE_ID>"}' \
+  --session-timeout-seconds 3600 \
+  --region <AGENTCORE_REGION> \
+  --profile <AWS_PROFILE_NAME> \
+  --output json
+```
+
+輸出重點欄位：
+
+- `sessionId`
+- `browserIdentifier`（預期是 `aws.browser.v1`）
+
+### 5.2 Step 2：印出 Live View URL（點進去手動登入）
+
+從 `start-browser-session` 輸出中取出 `<SESSION_ID>` 後，Live View（Console）URL 格式如下：
+
+```
+https://<AGENTCORE_REGION>.console.aws.amazon.com/bedrock-agentcore/browser/aws.browser.v1/session/<SESSION_ID>#
+```
+
+打開後：
+
+1. 在 Live View 內操作瀏覽器登入 `https://x.com`
+2. 登入完成後，於 Console 介面點選 **Save to profile**（把 cookies/localStorage 存回 `<AGENTCORE_PROFILE_ID>`）
+
+### 5.3 Step 3（可用 CLI 取代 Console 按鈕）：用 AWS CLI 儲存 session state 到 profile
+
+如果你希望全程用 CLI，也可以直接呼叫：
+
+```bash
+aws bedrock-agentcore save-browser-session-profile \
+  --profile-identifier <AGENTCORE_PROFILE_ID> \
+  --browser-identifier aws.browser.v1 \
+  --session-id <SESSION_ID> \
+  --region <AGENTCORE_REGION> \
+  --profile <AWS_PROFILE_NAME>
+```
+
+> 注意：`save-browser-session-profile` 需要 session 仍在 active 狀態。
+
+### 5.4 Step 4：重新開一個新 session 驗證持久化
+
+再次執行 Step 1（同一個 `<AGENTCORE_PROFILE_ID>`），然後在 Live View 直接開 `https://x.com/home`，應該能看到已登入的 Home timeline，不再跳 login flow。
+
+---
+
+## 6. 用 agent-browser 連線（推薦）
 
 ### 5.1 最小命令
 
@@ -251,14 +308,14 @@ agent-browser close
 export AGENTCORE_REGION=us-east-1
 export AGENTCORE_PROFILE_ID=my-profile-id
 
-agent-browser -p agentcore open https://x.com/home
+agent-browser -p agentcore open https://x.com/home --timeout 30000 2>&1
 ```
 
 > `AGENTCORE_PROFILE_ID` 會讓 AgentCore 用指定 profile 保存 cookies / localStorage。
 
 ---
 
-## 6. 常用環境變數（AgentCore）
+## 7. 常用環境變數（AgentCore）
 
 | 變數 | 說明 | 預設 |
 |---|---|---|
@@ -269,9 +326,9 @@ agent-browser -p agentcore open https://x.com/home
 
 ---
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
-### 7.1 `Failed to start AgentCore browser session` / 403 / Forbidden
+### 8.1 `Failed to start AgentCore browser session` / 403 / Forbidden
 
 - 通常是 **AWS credentials 不正確** 或 **沒有 Bedrock AgentCore 權限**。
 - 請先用 AWS CLI 確認你目前身份：
@@ -282,13 +339,13 @@ aws sts get-caller-identity
 
 > 注意：此命令輸出會包含 AWS Account / ARN 等識別資訊；若要貼到公開 issue/PR，請先打碼或移除敏感欄位。
 
-### 7.2 CDP 連線失敗（`Failed to connect to AgentCore browser session via CDP`）
+### 8.2 CDP 連線失敗（`Failed to connect to AgentCore browser session via CDP`）
 
 - 常見原因：region 不對、網路限制、或 session 啟動後立刻失效。
 - 先確認你設定的 `AGENTCORE_REGION` 正確。
 - 看 `Live View` 連結能否打開（AWS Console）。
 
-### 7.3 忘了 close，session 沒有 stop
+### 8.3 忘了 close，session 沒有 stop
 
 - 建議每次用完都跑 `agent-browser close`。
 - 若你在程式/腳本中使用，務必做 try/finally 確保 close 被呼叫。
