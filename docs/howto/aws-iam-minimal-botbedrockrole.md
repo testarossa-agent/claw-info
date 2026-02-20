@@ -83,12 +83,12 @@
 
 ```text
 Prompt to your Agent:
-請根據這份文件，產生一個「AWS IAM Role（BotBedrockRole）」的建立操作指南與對應的 IaC 範本（CloudFormation 或 Terraform 二選一），內容需包含：
+請根據這份文件，直接用 **AWS CLI** 產生一個「AWS IAM Role（BotBedrockRole）」的建立操作指南（以 `aws iam create-role` / `attach-role-policy` / `put-role-policy` 為主），內容需包含：
 1) 附加兩個 AWS 託管策略：AWSBillingReadOnlyAccess、CloudWatchReadOnlyAccess
 2) 加上一份 inline policy（JSON 如文件所示：BedrockInvoke + AgentCoreBrowserMinimal）
 3) trust policy（AssumeRolePolicyDocument）：請先詢問我這個 role 要給誰 assume（例如：IAM User、EC2、ECS、Lambda、或 AWS SSO），再產生正確的 Principal
-4) 建立後的驗證步驟：用 aws cli 測試 bedrock invoke 與 bedrock-agentcore start/stop/save profile 是否成功
-注意：在我確認之前，不要直接對 AWS 執行 create-role / attach-policy 等寫入操作；先輸出範本與命令讓我 review。
+4) 建立後的驗證步驟：用 AWS CLI 測試 bedrock invoke 與 bedrock-agentcore start/stop/save profile 是否成功
+注意：在我確認之前，不要直接對 AWS 執行任何寫入操作；先輸出所有 AWS CLI 命令與 JSON（trust policy / inline policy）讓我 review。
 文件：
 https://github.com/thepagent/claw-info/blob/main/docs/howto/aws-iam-minimal-botbedrockrole.md
 ```
