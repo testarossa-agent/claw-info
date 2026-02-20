@@ -64,7 +64,9 @@ PR #397 主要新增：
 
 本指南預設 region 使用 `us-east-1`（可改）。
 
-### 1.3 IAM 權限（讓你的 Agent 能確認自己“有權限”）
+### 1.3 IAM 權限（執行 agent-browser 的身份都需要）
+
+不論你是 **真人在終端機操作**、或是 **由 Agent/自動化流程呼叫 `agent-browser`**，只要使用的是同一組 AWS credentials / role / permission set，該「執行身份」就必須具備本節列出的 `bedrock-agentcore:*` 權限，否則會在 start session / connect stream / stop session 任一步驟遇到 `403 Forbidden`。
 
 `agent-browser -p agentcore` 在背後會做三件事：
 
