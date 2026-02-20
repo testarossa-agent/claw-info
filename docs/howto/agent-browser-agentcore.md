@@ -26,6 +26,8 @@ Amazon Bedrock AgentCore Browser 提供「雲端可控的遠端瀏覽器 session
 
 #### Architecture / Data Flow（元件串接圖）
 
+一句話記：**REST 管 session/profile（建立/關閉/保存），CDP（WebSocket）管瀏覽器操作（open/click/type/eval…）**。
+
 ```text
 User / Agent
    |
