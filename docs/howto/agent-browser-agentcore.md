@@ -3,7 +3,7 @@
 ```text
 Agent Prompt（可直接貼給你的 Agent）
 
-請閱讀並依序執行這份文件，目標是把我整個環境配置到「最終可穩定訪問 https://x.com/home（已登入狀態）」：
+請閱讀這份文件，協助導引我配置，目標是把我整個環境配置到可使用 agent-browser「穩定訪問 https://x.com/home（已登入狀態）」：
 https://github.com/thepagent/claw-info/blob/main/docs/howto/agent-browser-agentcore.md
 ```
 
