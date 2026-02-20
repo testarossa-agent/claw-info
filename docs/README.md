@@ -36,6 +36,9 @@
 - **整合**
   - [`webhook.md`](./webhook.md) — Webhook delivery 與事件回傳（適合與外部系統串接）
 
+- **How-to / Recipes**
+  - [`howto/agent-browser-agentcore.md`](./howto/agent-browser-agentcore.md) — Build agent-browser（PR #397）並連線 AWS Bedrock AgentCore Browser
+
 - **運維**
   - [`profile_rotation.md`](./profile_rotation.md) — Profile rotation（憑證/身份輪替）與操作建議
 
