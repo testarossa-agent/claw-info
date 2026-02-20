@@ -1,0 +1,57 @@
+# OpenClaw 版本檢查機制
+
+## 1. 版本檢查與自動建立 Issue
+
+比對本機安裝版本與 npm 最新版本，若有新版本則自動建立 release notes issue。
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   版本檢查完整流程                    │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  openclaw --version   vs   npm show openclaw version│
+│                │                                    │
+│           版本不同？                                 │
+│           ├─ NO  → 結束                             │
+│           │                                         │
+│           └─ YES → Telegram 通知新版本               │
+│                         │                           │
+│                         ▼                           │
+│    TITLE = "Release notes: OpenClaw <LATEST>"       │
+│                         │                           │
+│    gh issue list --state all                        │
+│    ⚠️  open + closed 都查                           │
+│                         │                           │
+│                  issue 存在？                        │
+│                  ├─ YES → 結束                      │
+│                  │                                  │
+│                  └─ NO → 建立 issue                 │
+│                            - 上游 release tag 連結  │
+│                            - zh-TW release notes    │
+│                            - Acceptance criteria    │
+│                              │                      │
+│                              ▼                      │
+│                    Telegram 通知 issue URL           │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+工具：
+- `openclaw --version` — 取得目前安裝版本
+- `npm show openclaw version` — 取得 npm 最新版本
+- `gh issue list --state all` — 搜尋 open + closed issue，避免重複建立
+
+## 2. 通知機制
+
+透過 Telegram 通知 owner，使用 openclaw 內建訊息功能：
+
+```bash
+openclaw message send --channel telegram --target <OWNER_ID> -m "<MESSAGE>"
+```
+
+觸發時機：
+
+| 事件 | 通知內容 |
+|------|----------|
+| 偵測到新版本 | `OpenClaw 有新版本！目前: <CURRENT> → 最新: <LATEST>` |
+| 成功建立 issue | `已建立 release notes issue: <ISSUE_URL>` |
