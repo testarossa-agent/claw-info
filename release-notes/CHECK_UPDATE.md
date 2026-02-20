@@ -1,5 +1,55 @@
 # OpenClaw 版本檢查機制
 
+## 整體架構
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      自動更新檢查完整架構                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  OS crond                                                       │
+│  (排程觸發)                                                      │
+│      │                                                          │
+│      ▼                                                          │
+│  kiro-cli chat --non-interactive --trust-all-tools              │
+│      "openclaw skill to check update now"                       │
+│      │                                                          │
+│      ▼                                                          │
+│  Kiro CLI                                                       │
+│  (自動載入 OpenClaw SKILL)                                       │
+│      │                                                          │
+│      ▼                                                          │
+│  SKILL: 版本檢查                                                 │
+│  openclaw --version  vs  npm show openclaw version              │
+│      │                                                          │
+│      ├─ 版本相同 → 結束                                          │
+│      │                                                          │
+│      └─ 版本不同                                                 │
+│              │                                                  │
+│              ▼                                                  │
+│         OpenClaw message send                                   │
+│         Telegram 通知新版本                                      │
+│              │                                                  │
+│              ▼                                                  │
+│         gh issue list --state all                               │
+│         (搜尋 open + closed)                                    │
+│              │                                                  │
+│              ├─ issue 已存在 → 結束                              │
+│              │                                                  │
+│              └─ issue 不存在                                     │
+│                      │                                          │
+│                      ▼                                          │
+│                 gh issue create                                  │
+│                 (release notes 任務)                             │
+│                      │                                          │
+│                      ▼                                          │
+│                 OpenClaw message send                            │
+│                 Telegram 通知 issue URL                          │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+
 ## 1. 版本檢查與自動建立 Issue
 
 比對本機安裝版本與 npm 最新版本，若有新版本則自動建立 release notes issue。
