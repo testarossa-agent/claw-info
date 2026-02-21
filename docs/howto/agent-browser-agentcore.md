@@ -397,7 +397,7 @@ agent-browser close
 
 ### 6.2（可選）如果 `agent-browser open` 沒印出 sessionId / Live View：用 AWS CLI 先開 session 再組 URL
 
-有些情況下（版本差異、輸出被 wrapper 吃掉、只收集 stdout 沒收 stderr…），你可能看不到 `Session:` / `Live View:` 的輸出。
+有些情況下（版本差異、輸出被 wrapper 吃掉、或你只收集 stdout 沒收 stderr…），你可能看不到 `Session:` / `Live View:` 的輸出；此時即使 `agent-browser -p agentcore open ...` 成功建立了 session，你也不一定能直接得知 `sessionId`。
 
 此時可改用 **AWS CLI 先建立 session**（拿到 `sessionId`），再自行組出 Live View URL 供手動觀察/排障。
 
