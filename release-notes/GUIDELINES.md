@@ -26,6 +26,9 @@ Provide a high-level summary using bullet points, grouped by category:
 
 Each item should start with the star rating followed by a short description.
 
+**Consistency rule (recommended)**
+- Overview 的每一條項目，應在下方對應分類的 Detailed Sections 中 **至少出現一次**（含相同的 PR/Issue 連結），避免概述與細節不同步。
+
 ### 3. Detailed Sections
 
 After the overview, provide detailed sections for each category:
@@ -55,6 +58,12 @@ Always include the PR/Issue number at the end.
   - Upstream OpenClaw PR：`[#12345](https://github.com/openclaw/openclaw/pull/12345)`
   - `claw-info` 自己的 issue：`[#54](https://github.com/thepagent/claw-info/issues/54)`
 - GitHub 雖然常會自動把 `#54` 變成連結，但**建議仍用明確的 Markdown link** 以保持一致、避免漏連。
+
+**No PR/Issue number case**
+- 若上游 Release 條目未提供 PR/Issue 編號，請至少：
+  - 連到對應的 GitHub Release（tag）頁面；或
+  - 連到相關的 Security Advisory（GHSA）/Issue（若有）。
+- **不要**自行杜撰 PR/Issue 編號。
 
 此規則可讓讀者快速驗證來源、降低歧義。
 
@@ -117,9 +126,10 @@ Use star ratings to indicate importance:
 
 ### For Each Release
 
-- **At least 10 items per category** (Features, Security, Bug Fixes)
+- **Target: at least 10 items per category** (Features, Security, Bug Fixes)
+  - 若上游 release/changelog 該類別本就不足 10 項，則以「完整涵蓋可取得的項目」為準，不強制湊數。
 - **Complete details**: Ensure every item has用途, 解決問題, 影響
-- **PR/Issue references**: Always include PR/Issue numbers
+- **PR/Issue references**: Always include PR/Issue numbers（若無則依 Link rule 以 release/advisory 連結替代）
 
 ### Categories
 
@@ -132,16 +142,20 @@ Use star ratings to indicate importance:
 1. **Review GitHub releases first** - Always check the official GitHub releases for the target version
 2. **Sort by importance** - Order items by star rating (most important first)
 3. **Include GitHub link** - Add direct link to the release in the header
-4. **Use markdown tables** - For summary and complex information
-5. **Proofread** - Ensure all PR links are correct and descriptions are accurate
+4. **Optional: small ASCII diagrams** - For particularly impactful changes, you may include a short ` ```text ` ASCII block diagram under the item to illustrate architecture/flow.
+   - Keep it brief (roughly 5–20 lines) and only for a few top items.
+   - Diagrams should explain, not replace, 用途/解決問題/影響。
+5. **Use markdown tables** - For summary and complex information
+6. **Proofread** - Ensure all PR links are correct and descriptions are accurate
 
 ## Checklist Before Commit
 
 - [ ] GitHub release page reviewed for accuracy
 - [ ] All items include star ratings
 - [ ] Items sorted by star rating (descending)
-- [ ] All items include PR/Issue numbers
+- [ ] All items include PR/Issue numbers (or valid release/advisory links if no PR/Issue)
 - [ ] All items have用途, 解決問題, 影響
+- [ ] Overview items appear in the corresponding detailed sections (same PR/Issue links)
 - [ ] Summary table completed
 - [ ] GitHub release link included
 - [ ] No persona/language (professional only)
