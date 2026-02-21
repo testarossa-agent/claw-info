@@ -395,7 +395,38 @@ agent-browser snapshot
 agent-browser close
 ```
 
-### 6.2 啟用 Profile Persistence（跨 session 保留登入）
+### 6.2（可選）如果 `agent-browser open` 沒印出 sessionId / Live View：用 AWS CLI 先開 session 再組 URL
+
+有些情況下（版本差異、輸出被 wrapper 吃掉、只收集 stdout 沒收 stderr…），你可能看不到 `Session:` / `Live View:` 的輸出。
+
+此時可改用 **AWS CLI 先建立 session**（拿到 `sessionId`），再自行組出 Live View URL 供手動觀察/排障。
+
+前置：建議安裝 `jq`（用來抽 `sessionId`）。
+
+```bash
+# 1) Start session via AWS CLI (returns session ID)
+RESULT=$(aws bedrock-agentcore start-browser-session \
+  --browser-identifier aws.browser.v1 \
+  --profile-configuration '{"profileIdentifier":"<AGENTCORE_PROFILE_ID>"}' \
+  --session-timeout-seconds 3600 \
+  --region <AGENTCORE_REGION> \
+  --profile <AWS_PROFILE_NAME> \
+  --output json)
+
+SESSION_ID=$(echo "$RESULT" | jq -r '.sessionId')
+
+echo "SessionId: ${SESSION_ID}"
+
+# 2) Print Live View URL
+echo "https://<AGENTCORE_REGION>.console.aws.amazon.com/bedrock-agentcore/browser/aws.browser.v1/session/${SESSION_ID}#"
+
+# 3) Connect and navigate with agent-browser (will reuse your env like AGENTCORE_REGION)
+agent-browser -p agentcore open "https://x.com/home" --timeout 30000
+```
+
+> 安全提醒：請勿把 `sessionId` / Live View URL 貼到公開 issue/PR；這類資訊通常足以用來觀察該 session。
+
+### 6.3 啟用 Profile Persistence（跨 session 保留登入）
 
 ```bash
 export AGENTCORE_REGION=us-east-1
