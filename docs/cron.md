@@ -349,6 +349,7 @@ LATEST=$(npm show openclaw version)
 
 # 正確：使用絕對路徑
 NPM=/home/<user>/.local/share/fnm/node-versions/<version>/installation/bin/npm
+
 LATEST=$($NPM show openclaw version)
 ```
 
