@@ -348,7 +348,7 @@ Cron 作業失敗時的行為：
 LATEST=$(npm show openclaw version)
 
 # 正確：使用絕對路徑
-NPM=/home/pahud/.local/share/fnm/node-versions/v24.13.1/installation/bin/npm
+NPM=/home/<user>/.local/share/fnm/node-versions/<version>/installation/bin/npm
 LATEST=$($NPM show openclaw version)
 ```
 
