@@ -337,6 +337,23 @@ Cron 作業失敗時的行為：
 
 **A:** 可以。使用 `openclaw gateway restart` 重新加载配置。
 
+### Q4: Cron job 找不到指令（如 `npm`、`node`）？
+
+**A:** OpenClaw cron 的 isolated session 使用精簡的 PATH，不會繼承使用者的 shell 環境（如 fnm、nvm、pyenv 等）。
+
+解法：在腳本或 message 中使用**絕對路徑**：
+
+```bash
+# 錯誤：依賴 PATH
+LATEST=$(npm show openclaw version)
+
+# 正確：使用絕對路徑
+NPM=/home/pahud/.local/share/fnm/node-versions/v24.13.1/installation/bin/npm
+LATEST=$($NPM show openclaw version)
+```
+
+同理，若直接在 `--message` 中執行指令，也應使用絕對路徑。
+
 ---
 
 ## 已知問題（Open Issues）
