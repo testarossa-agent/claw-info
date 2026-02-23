@@ -343,31 +343,77 @@ Cron 作業失敗時的行為：
 
 ### 🔴 Bugs
 
-| Issue | 標題 | 說明 |
-|-------|------|------|
-| [#18120](https://github.com/openclaw/openclaw/issues/18120) | runningAtMs 永不自動清除 | Session timeout 後 runningAtMs 未清除，導致 cron 永久停止執行 |
-| [#17979](https://github.com/openclaw/openclaw/issues/17979) | cron tool 從 main session 呼叫超時 | cron.status WS frame 無回應，但 cron job 本身正常執行 |
-| [#17599](https://github.com/openclaw/openclaw/issues/17599) | WhatsApp delivery 間歇性失敗 | ~20% 機率出現 `cron delivery target is missing` 錯誤 |
-| [#16156](https://github.com/openclaw/openclaw/issues/16156) | 週期性 cron job 不執行 | `schedule.kind: "cron"` 只更新 nextRunAtMs 但不觸發執行 |
-| [#16054](https://github.com/openclaw/openclaw/issues/16054) | 自訂 provider 靜默重命名 | provider 名稱被改寫，導致 cron job 報 "model not allowed" |
-| [#14751](https://github.com/openclaw/openclaw/issues/14751) | cron list Gateway 超時 | `cron list` 回傳 60s+ 超時，但 job 正常執行 |
-| [#12440](https://github.com/openclaw/openclaw/issues/12440) | cron list 導致排程被跳過 | 呼叫 `cron list` 後 recomputeNextRuns() 跳過未執行的 job |
+| Issue | 標題 | 說明 | 狀態 |
+|-------|------|------|------|
+| [#18120](https://github.com/openclaw/openclaw/issues/18120) | runningAtMs 永不自動清除 | Session timeout 後 runningAtMs 未清除，導致 cron 永久停止執行 | ✅ 已修復 (2026-02-22) |
+| [#17979](https://github.com/openclaw/openclaw/issues/17979) | cron tool 從 main session 呼叫超時 | cron.status WS frame 無回應，但 cron job 本身正常執行 | ✅ 已修復 (2026-02-22) |
+| [#17599](https://github.com/openclaw/openclaw/issues/17599) | WhatsApp delivery 間歇性失敗 | ~20% 機率出現 `cron delivery target is missing` 錯誤 | ✅ 已關閉 (stale, 2026-02-23) |
+| [#16156](https://github.com/openclaw/openclaw/issues/16156) | 週期性 cron job 不執行 | `schedule.kind: "cron"` 只更新 nextRunAtMs 但不觸發執行 | ✅ 已修復 (2026-02-20) |
+| [#16054](https://github.com/openclaw/openclaw/issues/16054) | 自訂 provider 靜默重命名 | provider 名稱被改寫，導致 cron job 報 "model not allowed" | ✅ 已關閉 (stale, 2026-02-22) |
+| [#14751](https://github.com/openclaw/openclaw/issues/14751) | cron list Gateway 超時 | `cron list` 回傳 60s+ 超時，但 job 正常執行 | ✅ 已修復 (2026-02-22) |
+| [#12440](https://github.com/openclaw/openclaw/issues/12440) | cron list 導致排程被跳過 | 呼叫 `cron list` 後 recomputeNextRuns() 跳過未執行的 job | 🔴 仍開啟 (stale) |
 
 ### 🟢 Feature Requests
 
-| Issue | 標題 | 說明 |
-|-------|------|------|
-| [#13900](https://github.com/openclaw/openclaw/issues/13900) | Ephemeral Cron Sessions | 請求 cron session 執行後自動清除，避免 token 累積 |
-| [#13598](https://github.com/openclaw/openclaw/issues/13598) | Cron 故障排除手冊 | 請求新增 cron troubleshooting playbook 文件 |
-| [#12736](https://github.com/openclaw/openclaw/issues/12736) | tools.cron.tools.deny 設定 | 請求 cron job 層級的工具限制設定 |
+| Issue | 標題 | 說明 | 狀態 |
+|-------|------|------|------|
+| [#13900](https://github.com/openclaw/openclaw/issues/13900) | Ephemeral Cron Sessions | 請求 cron session 執行後自動清除，避免 token 累積 | 🟡 開啟中 |
+| [#13598](https://github.com/openclaw/openclaw/issues/13598) | Cron 故障排除手冊 | 請求新增 cron troubleshooting playbook 文件 | 🟡 開啟中 |
+| [#12736](https://github.com/openclaw/openclaw/issues/12736) | tools.cron.tools.deny 設定 | 請求 cron job 層級的工具限制設定 | 🟡 開啟中 |
+
+---
+
+## OS cron 與 OpenClaw cron 比較
+
+### 核心差異
+
+OS cron 直接執行 shell 指令，行為完全確定（deterministic）——腳本寫什麼就跑什麼，不受任何外部因素影響。
+
+OpenClaw cron 本質上是**透過 prompt 驅動 agent 去做某件事**。即使 message 寫得再明確，LLM 的行為仍是非確定性的（non-deterministic）——agent 可能正確執行，也可能偏離指令、加入額外判斷、或產生非預期的副作用。這是使用 AI agent 做自動化時必須接受的根本限制。
+
+> 因此，對於**不需要 AI 判斷、邏輯已固定**的任務，OS cron 的可靠性天生優於 OpenClaw cron。
+
+### 比較表
+
+| 項目 | OS cron | OpenClaw cron |
+|------|---------|---------------|
+| Gateway 掛掉時仍能執行 | ✅ 完全獨立於 gateway，即使 openclaw 服務掛掉仍正常執行 | ❌ scheduler 在 gateway 程序內，gateway 掛掉則排程停止 |
+| 執行歷史記錄 | ❌ 需自行將 stdout/stderr 導向 log 檔，無結構化查詢 | ✅ `openclaw cron runs <id>` 可查每次執行時間、狀態、duration |
+| 集中管理 / 可見性 | ❌ 分散在各機器的 crontab，需 `crontab -l` 才能查看 | ✅ `openclaw cron list` 一覽所有排程，含下次執行時間與狀態 |
+| 即時觸發測試 | ❌ 需等待下一個時間點，或手動執行腳本 | ✅ `openclaw cron run <id>` 立即觸發，方便除錯 |
+| Agent 整合 / 工具呼叫 | ❌ 純 shell，無法呼叫 LLM 工具、memory、browser 等 | ✅ agentTurn 可使用完整工具集，適合需要 AI 判斷的任務 |
+| 直接執行 shell script | ✅ 直接執行，無中間層，行為完全可預測 | ⚠️ 透過 agent exec 間接執行，需在 message 明確指定 `and nothing else` |
+| 不依賴 LLM 判斷 | ✅ 邏輯完全由 shell script 控制，不受模型行為影響 | ⚠️ agentTurn 仍由 LLM 解讀 message，有偏離指令的風險 |
+| Telegram 通知整合 | ⚠️ 需在腳本內自行呼叫 `openclaw message send` | ✅ 原生支援 `--announce`，結果自動推送至指定頻道 |
+
+### OS cron 還是 OpenClaw cron？何時用哪個
+
+- **用 OS cron**：任務需在 gateway 掛掉時仍能執行（如 SSO refresh、gateway 健康監控）
+- **用 OpenClaw cron**：任務依賴 gateway 運作（如版本檢查通知、需要 agent 判斷的任務）
+
+### 當邏輯全在 shell script 時：OpenClaw cron + 強制執行模式
+
+當任務邏輯完全封裝在 shell script 內，不需要 AI 判斷，只需要確實執行時，可使用 OpenClaw cron 搭配明確指令來降低 agent 偏離風險：
+
+```bash
+openclaw cron edit <id> --message "Run bash /path/to/script.sh and nothing else"
+```
+
+這樣做的好處：
+- 保留 OpenClaw cron 的可見性與歷史記錄優勢
+- 透過明確的 `and nothing else` 限制 agent 自由發揮空間
+- 適用於：版本檢查、定期清理、狀態回報等邏輯已固定的任務
+
+> ⚠️ 注意：agent 仍有偏離可能，若需要 100% 確實執行且不依賴 gateway，應改用 OS cron。
 
 ---
 
 ## 更新紀錄
 
+- **2026-02-23**：新增「OS cron 與 OpenClaw cron 比較」章節
 - **2026-02-17**：新增「已知問題」章節
 - **2026-02-16**：建立文件，涵蓋核心概念與範例
 
 ---
 
-*最後更新：2026-02-17*
+*最後更新：2026-02-23*
