@@ -365,6 +365,14 @@ Cron 作業失敗時的行為：
 
 ## OS cron 與 OpenClaw cron 比較
 
+### 核心差異
+
+OS cron 直接執行 shell 指令，行為完全確定（deterministic）——腳本寫什麼就跑什麼，不受任何外部因素影響。
+
+OpenClaw cron 本質上是**透過 prompt 驅動 agent 去做某件事**。即使 message 寫得再明確，LLM 的行為仍是非確定性的（non-deterministic）——agent 可能正確執行，也可能偏離指令、加入額外判斷、或產生非預期的副作用。這是使用 AI agent 做自動化時必須接受的根本限制。
+
+> 因此，對於**不需要 AI 判斷、邏輯已固定**的任務，OS cron 的可靠性天生優於 OpenClaw cron。
+
 ### 比較表
 
 | 項目 | OS cron | OpenClaw cron |
