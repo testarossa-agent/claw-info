@@ -93,3 +93,53 @@ openclaw message send ... "🎉 已更新至 $NEW_VERSION"
 - **`--ignore-scripts`** — 避免 node v24 上 `@discordjs/opus` 原生編譯失敗
 - **輪詢等待** — gateway 重啟後最多等待 60 秒，確認就緒後才發送 TG 確認訊息
 - **獨立 cron session** — 版本檢查在獨立 context 執行，不污染 main session
+
+## 常見問題排除
+
+### Agent 抱怨「工具壞了」或找不到 openclaw
+
+Isolated session 使用精簡 PATH，找不到 `~/.npm-global/bin/openclaw`。
+
+**解法**：設定 `tools.exec.pathPrepend`：
+
+```bash
+openclaw config set tools.exec.pathPrepend \
+  '["~/.npm-global/bin", "~/.local/share/fnm/node-versions/v24.13.1/installation/bin"]' \
+  --strict-json
+systemctl --user restart openclaw-gateway.service
+```
+
+### UPDATE CLAW 一直要求人工核准
+
+`host=gateway` 時 exec 預設需要批准。需要同時設定兩處：
+
+**1. `openclaw.json`（全域）**：
+
+```bash
+openclaw config set tools.exec.ask off
+openclaw config set tools.exec.security full
+```
+
+> ⚠️ `tools.exec.*` 與 `exec-approvals.json` 取**較嚴格**者，兩處都要設。
+
+**2. `exec-approvals.json`（用 CLI，勿直接編輯）**：
+
+直接編輯 `exec-approvals.json` 會被 gateway 重啟覆寫。請用 CLI：
+
+```bash
+# 所有 agent 允許跑 scripts/
+openclaw approvals allowlist add --agent "*" "/home/<user>/.openclaw/scripts/*"
+
+# main agent 允許 kiro-cli + setsid
+openclaw approvals allowlist add --agent "main" "/home/<user>/.local/bin/kiro-cli"
+openclaw approvals allowlist add --agent "main" "/usr/bin/setsid"
+```
+
+**3. Per-agent 設定（最終保障）**：
+
+```bash
+openclaw config set agents.list[0].tools.exec.ask off
+openclaw config set agents.list[0].tools.exec.security full
+openclaw config set agents.list[0].tools.exec.host gateway
+systemctl --user restart openclaw-gateway.service
+```
