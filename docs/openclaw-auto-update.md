@@ -132,12 +132,15 @@ isolated session exec
         └──────────────────┘
 ```
 
-**解法**：設定 `tools.exec.pathPrepend`：
+**解法**：將常用 binary symlink 至 `~/.local/bin/`，再設定 `tools.exec.pathPrepend`：
 
 ```bash
-openclaw config set tools.exec.pathPrepend \
-  '["~/.npm-global/bin", "~/.local/share/fnm/node-versions/v24.13.1/installation/bin"]' \
-  --strict-json
+# 建立 symlink
+ln -sf ~/.npm-global/bin/openclaw ~/.local/bin/openclaw
+ln -sf ~/.local/share/fnm/node-versions/<version>/installation/bin/npm ~/.local/bin/npm
+
+# 設定 pathPrepend（只需一個路徑）
+openclaw config set tools.exec.pathPrepend '["~/.local/bin"]' --strict-json
 systemctl --user restart openclaw-gateway.service
 ```
 
