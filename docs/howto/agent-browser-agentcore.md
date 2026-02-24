@@ -320,18 +320,19 @@ cp cli/target/release/agent-browser "$(dirname $(which agent-browser))/agent-bro
 
 agent-browser 使用 daemon 架構——CLI 只是 client，實際邏輯跑在背景的 Node.js daemon。**rebuild 後如果不重啟 daemon，舊的 daemon 仍會繼續服務，新功能不會生效。**
 
+`agent-browser close` 會同時關閉瀏覽器 session 並停止 daemon（`process.exit(0)`），下次執行任何命令時會自動啟動新 daemon：
+
 ```bash
-# 1) 關閉 browser session
 agent-browser close
-
-# 2) 殺掉舊 daemon
-pkill -9 -f "node.*daemon"
-
-# 3) 清除 socket 檔（預設在 ~/.agent-browser/）
-rm -f ~/.agent-browser/default.sock ~/.agent-browser/default.pid
-
-# 4) 下次執行任何 agent-browser 命令時，會自動啟動新 daemon
+# 下一個命令會自動用新 build 啟動 daemon
 agent-browser -p agentcore open https://x.com/home
+```
+
+如果 `close` 無法正常執行（例如 daemon 卡住），可手動清理：
+
+```bash
+pkill -9 -f "node.*daemon"
+rm -f ~/.agent-browser/default.sock ~/.agent-browser/default.pid
 ```
 
 ---
