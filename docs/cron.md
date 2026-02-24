@@ -355,6 +355,34 @@ LATEST=$($NPM show openclaw version)
 
 同理，若直接在 `--message` 中執行指令，也應使用絕對路徑。
 
+### Q5: Cron job exec 一直卡在「需要批准」？
+
+**A:** `host=gateway` 時，exec 預設需要人工批准（`tools.exec.ask=on-miss`）。在自動化場景下需關閉：
+
+```bash
+openclaw config set tools.exec.ask off
+openclaw config set tools.exec.security full
+systemctl --user restart openclaw-gateway.service
+```
+
+| 設定 | 說明 |
+|------|------|
+| `tools.exec.host` | `gateway`：在 gateway host 執行（可存取完整 PATH） |
+| `tools.exec.ask` | `off`：不要求人工批准；`on-miss`（預設）：allowlist 未命中時要求批准 |
+| `tools.exec.security` | `full`：不受 allowlist 限制；`allowlist`（預設）：只允許白名單內的指令 |
+
+> ⚠️ `security=full` 表示 exec 可執行任意指令，僅適用於受信任的自動化腳本。
+
+### Q6: Cron job 跑完後 agent 把結果 announce 到 Telegram，但我只想讓腳本自己控制通知？
+
+**A:** 預設 `delivery.mode=announce` 會把 agent 的執行結果推送到頻道，導致多餘訊息。改為 `none`：
+
+```bash
+openclaw cron edit <id> --no-deliver
+```
+
+這樣只有腳本內明確呼叫 `openclaw message send` 時才會送出 Telegram 訊息，agent 的執行摘要不會自動推送。
+
 ---
 
 ## 已知問題（Open Issues）
@@ -430,6 +458,7 @@ openclaw cron edit <id> --message "Run bash /path/to/script.sh and nothing else"
 
 ## 更新紀錄
 
+- **2026-02-24**：新增 Q5（exec 批准問題）、Q6（delivery 亂送 TG）常見問題
 - **2026-02-23**：新增「OS cron 與 OpenClaw cron 比較」章節
 - **2026-02-17**：新增「已知問題」章節
 - **2026-02-16**：建立文件，涵蓋核心概念與範例
