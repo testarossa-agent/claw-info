@@ -349,10 +349,62 @@ LATEST=$(npm show openclaw version)
 
 # 正確：使用絕對路徑
 NPM=/home/<user>/.local/share/fnm/node-versions/<version>/installation/bin/npm
+
 LATEST=$($NPM show openclaw version)
 ```
 
 同理，若直接在 `--message` 中執行指令，也應使用絕對路徑。
+
+### Q5: Cron job exec 一直卡在「需要批准」？
+
+**A:** `host=gateway` 時，exec 預設需要人工批准（`tools.exec.ask=on-miss`）。建議用 allowlist 白名單腳本路徑，而非全域關閉安全機制：
+
+**推薦做法：allowlist 白名單（較安全）**
+
+編輯 `~/.openclaw/exec-approvals.json`，將腳本目錄加入白名單：
+
+```json
+{
+  "agents": {
+    "main": {
+      "security": "allowlist",
+      "ask": "off",
+      "allowlist": [
+        { "pattern": "/home/<user>/.openclaw/scripts/*" }
+      ]
+    }
+  }
+}
+```
+
+全域維持嚴格設定：
+
+```bash
+openclaw config set tools.exec.host gateway
+openclaw config set tools.exec.security allowlist
+openclaw config set tools.exec.ask on-miss
+systemctl --user restart openclaw-gateway.service
+```
+
+這樣只有 `scripts/` 下的腳本可不經批准執行，其他指令一律拒絕。
+
+| 設定 | 說明 |
+|------|------|
+| `tools.exec.host` | `gateway`：在 gateway host 執行（可存取完整 PATH） |
+| `tools.exec.ask` | `off`：不要求批准；`on-miss`（預設）：allowlist 未命中時要求批准 |
+| `tools.exec.security` | `allowlist`：只允許白名單內的指令；`full`：允許任意指令（不建議） |
+
+> ⚠️ 避免使用 `security=full`，它允許 agent 執行任意指令。
+
+### Q6: Cron job 跑完後 agent 把結果 announce 到 Telegram，但我只想讓腳本自己控制通知？
+
+**A:** 預設 `delivery.mode=announce` 會把 agent 的執行結果推送到頻道，導致多餘訊息。改為 `none`：
+
+```bash
+openclaw cron edit <id> --no-deliver
+```
+
+這樣只有腳本內明確呼叫 `openclaw message send` 時才會送出 Telegram 訊息，agent 的執行摘要不會自動推送。
 
 ---
 
@@ -429,6 +481,7 @@ openclaw cron edit <id> --message "Run bash /path/to/script.sh and nothing else"
 
 ## 更新紀錄
 
+- **2026-02-24**：新增 Q5（exec 批准問題）、Q6（delivery 亂送 TG）常見問題
 - **2026-02-23**：新增「OS cron 與 OpenClaw cron 比較」章節
 - **2026-02-17**：新增「已知問題」章節
 - **2026-02-16**：建立文件，涵蓋核心概念與範例
