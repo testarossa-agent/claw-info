@@ -104,27 +104,32 @@ Isolated session 使用精簡 PATH，找不到 `~/.npm-global/bin/openclaw`。
 isolated session exec
         │
         ▼
-  PATH = /usr/local/bin:/usr/bin:/bin   ← 精簡 PATH，無 ~/.npm-global/bin
-        │
-        ▼
-  openclaw --version
-        │
-        ▼
-  command not found ❌
-  agent 回報「工具壞了」
+┌─────────────────────────────────┐
+│ PATH = /usr/local/bin:/usr/bin  │  ← 精簡 PATH
+│        無 ~/.npm-global/bin     │
+└─────────────────┬───────────────┘
+                  │
+                  ▼
+        ┌─────────────────┐
+        │ openclaw 找不到 │──► agent 回報「工具壞了」❌
+        └─────────────────┘
 
-  ─────────────────────────────────────
   設定 tools.exec.pathPrepend 後：
-  ─────────────────────────────────────
 
 isolated session exec
         │
         ▼
-  PATH = ~/.npm-global/bin:~/.local/share/fnm/.../bin:/usr/local/bin:...
-        │
-        ▼
-  openclaw --version ✅
-  npm show openclaw version ✅
+┌──────────────────────────────────────┐
+│ PATH = ~/.npm-global/bin             │
+│      + ~/.local/share/fnm/.../bin    │
+│      + /usr/local/bin:...            │
+└──────────────────┬───────────────────┘
+                   │
+                   ▼
+        ┌──────────────────┐
+        │ openclaw ✅       │
+        │ npm ✅            │
+        └──────────────────┘
 ```
 
 **解法**：設定 `tools.exec.pathPrepend`：
@@ -141,27 +146,38 @@ systemctl --user restart openclaw-gateway.service
 `host=gateway` 時 exec 預設需要批准。需要同時設定兩處：
 
 ```
-agent exec 請求
-        │
-        ▼
-┌───────────────────────────────┐
-│  取較嚴格者                   │
-│                               │
-│  tools.exec.ask (openclaw.json)│
-│         vs                    │
-│  exec-approvals.json defaults │
-└───────────────┬───────────────┘
-                │
-        ┌───────┴────────┐
-        │                │
-   兩者皆 off         任一為 on-miss
-        │                │
-        ▼                ▼
-   直接執行 ✅      要求批准 ❌
-                         │
-                         ▼
-                   approval timeout
-                   → 拒絕執行
+        ┌─────────────────────┐
+        │   agent exec 請求   │
+        └──────────┬──────────┘
+                   │
+                   ▼
+        ┌──────────────────────────────┐
+        │       取較嚴格者             │
+        │                              │
+        │  tools.exec.ask              │
+        │  (openclaw.json)             │
+        │          vs                  │
+        │  exec-approvals.json         │
+        │  defaults.ask                │
+        └──────────┬───────────────────┘
+                   │
+         ┌─────────┴──────────┐
+         │                    │
+         ▼                    ▼
+┌─────────────────┐  ┌─────────────────────┐
+│  兩者皆 off     │  │  任一為 on-miss      │
+└────────┬────────┘  └──────────┬──────────┘
+         │                      │
+         ▼                      ▼
+┌─────────────────┐  ┌─────────────────────┐
+│  直接執行 ✅    │  │  要求人工批准        │
+└─────────────────┘  └──────────┬──────────┘
+                                 │
+                                 ▼
+                      ┌─────────────────────┐
+                      │  approval timeout   │
+                      │  → 拒絕執行 ❌      │
+                      └─────────────────────┘
 ```
 
 > ⚠️ `tools.exec.*` 與 `exec-approvals.json` 取**較嚴格**者，兩處都要設。
