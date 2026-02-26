@@ -32,13 +32,9 @@ jobs:
             --repo ${{ github.repository }} \
             --state all \
             --search "$title" \
-            --json title,url \
-            | python3 -c "
-import json,sys
-issues=json.load(sys.stdin)
-match=[i for i in issues if i['title']=='$title']
-print(match[0]['url'] if match else '')
-")
+            --json title \
+            --jq ".[] | select(.title == \"$title\") | .title" \
+            | head -1)
           echo "existing=$existing" >> "$GITHUB_OUTPUT"
           if [ -n "$existing" ]; then
             echo "Issue already exists: $existing"
