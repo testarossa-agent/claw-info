@@ -187,4 +187,133 @@ openclaw secrets reload     # 執行期熱重載（原子性，失敗保留舊�
 
 ---
 
+## 實戰範例：AWS Secrets Manager
+
+以下為將 `ollama-cloud` provider 的 `apiKey` 遷移至 AWS Secrets Manager 的完整流程。
+
+### 1. 建立 Secret（JSON 格式，可存多個 key）
+
+```bash
+aws secretsmanager create-secret \
+  --profile bedrock-only \
+  --region us-east-1 \
+  --name "openclaw/secrets" \
+  --secret-string '{"ollama-cloud-apikey": "your-api-key-here"}'
+```
+
+> 建議用單一 JSON secret 存放所有 openclaw 相關 key，方便統一管理。
+
+### 2. 建立 exec provider wrapper script
+
+openclaw exec provider 要求 `command` 必須由當前使用者擁有（不可為 root 擁有或 symlink）。建立 wrapper：
+
+```bash
+cat > ~/bin/aws-wrapper.sh << 'EOF'
+#!/bin/bash
+RAW=$(/usr/local/bin/aws --profile bedrock-only secretsmanager get-secret-value \
+  --region us-east-1 \
+  --secret-id openclaw/secrets \
+  --query SecretString --output text)
+python3 -c "import json,sys; values=json.loads(sys.stdin.read()); print(json.dumps({'protocolVersion':1,'values':values}))" <<< "$RAW"
+EOF
+chmod 700 ~/bin/aws-wrapper.sh
+```
+
+exec provider 期望 stdout 輸出格式：
+
+```json
+{ "protocolVersion": 1, "values": { "ollama-cloud-apikey": "..." } }
+```
+
+### 3. 設定 exec provider（`openclaw.json`）
+
+```json
+{
+  "secrets": {
+    "providers": {
+      "aws_secrets_manager": {
+        "source": "exec",
+        "command": "/home/pahud/bin/aws-wrapper.sh",
+        "timeoutMs": 3000,
+        "jsonOnly": false
+      }
+    }
+  }
+}
+```
+
+### 4. 套用 SecretRef（`secrets apply` plan）
+
+```json
+{
+  "version": 1,
+  "protocolVersion": 1,
+  "targets": [
+    {
+      "type": "models.providers.apiKey",
+      "path": "models.providers.ollama-cloud.apiKey",
+      "providerId": "ollama-cloud",
+      "ref": {
+        "source": "exec",
+        "provider": "aws_secrets_manager",
+        "id": "ollama-cloud-apikey"
+      }
+    }
+  ],
+  "options": { "scrubEnv": true }
+}
+```
+
+```bash
+openclaw secrets apply --from /tmp/secrets-plan.json --dry-run  # 預覽
+openclaw secrets apply --from /tmp/secrets-plan.json            # 套用
+```
+
+### 5. 套用後的 `openclaw.json`（apiKey 欄位）
+
+```json
+{
+  "models": {
+    "providers": {
+      "ollama-cloud": {
+        "baseUrl": "https://ollama.com/v1",
+        "apiKey": {
+          "source": "exec",
+          "provider": "aws_secrets_manager",
+          "id": "ollama-cloud-apikey"
+        },
+        "api": "openai-completions"
+      }
+    }
+  }
+}
+```
+
+### 6. 驗證
+
+```bash
+openclaw secrets audit  # plaintext=0 即成功
+```
+
+### IAM 權限需求
+
+`BotBedrockRole`（或對應 permission set）需要：
+
+```json
+{
+  "Effect": "Allow",
+  "Action": [
+    "secretsmanager:GetSecretValue",
+    "secretsmanager:CreateSecret",
+    "secretsmanager:PutSecretValue",
+    "secretsmanager:DescribeSecret"
+  ],
+  "Resource": "arn:aws:secretsmanager:us-east-1:<account-id>:secret:openclaw/*"
+}
+```
+
+若使用 IAM Identity Center，需透過 `sso-admin put-inline-policy-to-permission-set` 附加，再 `provision-permission-set` 生效。
+
+---
+
 *參考：[v2026.2.26 Release Notes](https://github.com/openclaw/openclaw/releases/tag/v2026.2.26)*
