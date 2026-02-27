@@ -37,14 +37,9 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "SecretsManagerOpenClaw",
+      "Sid": "SecretsManagerRead",
       "Effect": "Allow",
-      "Action": [
-        "secretsmanager:CreateSecret",
-        "secretsmanager:GetSecretValue",
-        "secretsmanager:PutSecretValue",
-        "secretsmanager:DescribeSecret"
-      ],
+      "Action": "secretsmanager:GetSecretValue",
       "Resource": "arn:aws:secretsmanager:<region>:<account-id>:secret:openclaw/*"
     },
     {
@@ -72,16 +67,9 @@
 
 ## 各 Statement 說明
 
-### SecretsManagerOpenClaw
+### SecretsManagerRead
 
-| Action | 用途 |
-|--------|------|
-| `CreateSecret` | 初次建立 `openclaw/secrets` |
-| `GetSecretValue` | gateway 啟動時解析 SecretRef（必要） |
-| `PutSecretValue` | 更新/輪換 secret 值 |
-| `DescribeSecret` | 查詢 secret metadata |
-
-Resource 限定 `openclaw/*` 前綴，避免存取其他 secrets。
+`GetSecretValue` 是 openclaw gateway 啟動時解析 SecretRef 唯一需要的權限。`CreateSecret`、`PutSecretValue` 等管理操作應使用權限更高的 admin profile 執行，不應授予 gateway 角色。
 
 ### AgentCoreBrowserMinimal
 供 openclaw 的 browser 工具使用。若不需要特定功能可移除：
