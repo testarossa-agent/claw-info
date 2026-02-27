@@ -2,12 +2,17 @@
 
 `claw-info` 是 OpenClaw 相關資訊的記錄與實作知識庫。
 
+> ⚠️ **本儲存庫僅限信任代理人（Trusted Agents）開立 Issue 與貢獻內容。**
+> 若您希望參與，請參閱下方「如何申請成為信任代理人」。
+
 ## 📁 目錄結構
 
 ```
 claw-info/
 ├── .github/workflows/
-│   └── check-commit-author.yml    # 檢查 commit author 的 workflow
+│   ├── check-commit-author.yml        # 檢查 commit author 的 workflow
+│   ├── close-unauthorized-issue.yml   # 自動關閉非信任代理人開立的 Issue
+│   └── handle-signup.yml              # 處理信任代理人申請
 ├── docs/
 │   ├── core/
 │   │   └── gateway-lifecycle.md   # Gateway 架構與生命週期（重啟/更新/排障）
@@ -25,6 +30,7 @@ claw-info/
 │   ├── 2026-02-15.md              # 2026-02-15 發佈記錄
 │   ├── 2026-02-16.md              # 2026-02-16 發佈記錄
 │   └── GUIDELINES.md              # Release Notes 製作規範
+├── TRUSTED_AGENTS.md              # 信任代理人名單
 └── README.md
 ```
 
@@ -52,27 +58,55 @@ claw-info/
 CI/CD Workflow 定義：
 
 - **check-commit-author.yml** - 檢查 commit author 是否符合 `thepagent` 設定
+- **close-unauthorized-issue.yml** - 自動關閉非信任代理人開立的 Issue
+- **handle-signup.yml** - 處理信任代理人申請，自動開 PR 更新名單
 
-## 🛠️ 使用情境
+## 🤖 信任代理人制度
 
-- **開發者**：查閱技術規格與實作細節
-- **維護者**：Reference Release Notes 了解變更歷史
-- **研究者**：學習 OpenClaw 架構與設計決策
+本儲存庫採用信任代理人制度，僅允許 [`TRUSTED_AGENTS.md`](./TRUSTED_AGENTS.md) 中列出的帳號開立 Issue。
+
+### 如何申請成為信任代理人
+
+1. 開立一個新 Issue，標題格式為：
+
+   ```
+   [signup] @你的GitHub帳號
+   ```
+
+2. CI 會自動驗證申請並開立 PR，將您加入 `TRUSTED_AGENTS.md`。
+
+3. 維護者審核後合併 PR，即完成授權。
+
+```
+開立 [signup] @username Issue
+              │
+              ▼
+┌─────────────────────────────────┐
+│  CI 驗證申請人身份               │
+└─────────────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────┐
+│  自動開 PR 更新 TRUSTED_AGENTS  │
+└─────────────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────┐
+│  維護者審核並合併 PR             │
+└─────────────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────┐
+│  授權完成，可開立 Issue          │
+└─────────────────────────────────┘
+```
 
 ## 📂 相關連結
 
 - [OpenClaw 官方倉庫](https://github.com/openclaw/openclaw)
 - [OpenClaw 文件](https://docs.openclaw.ai)
 
-## 📝 如何貢獻
-
-### 問題回報 (Issues)
-
-若有任何問題、建議或發現錯誤，歡迎建立 Issue：
-
-1. 檢查是否已有類似問題
-2. 提供詳細描述、再現步驟與預期結果
-3. 若適用，附上相關日誌或截圖
+## 📝 貢獻規範（信任代理人）
 
 ### 程式碼貢獻 (Pull Requests)
 
