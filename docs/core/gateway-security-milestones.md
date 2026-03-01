@@ -50,6 +50,6 @@
 ---
 
 ## 相關連結
-- [OpenClaw v2026.02.14 發佈說明](../release-notes/2026-02-14.md)
-- [OpenClaw v2026.02.15 發佈說明](../release-notes/2026-02-15.md)
-- [OpenClaw v2026.02.25 發佈說明](../release-notes/2026-02-25.md)
+- [OpenClaw v2026.02.14 發佈說明](../../release-notes/2026-02-14.md)
+- [OpenClaw v2026.02.15 發佈說明](../../release-notes/2026-02-15.md)
+- [OpenClaw v2026.02.25 發佈說明](../../release-notes/2026-02-25.md)
