@@ -330,6 +330,87 @@ sessionKey=agent:guan-yu:telegram:group:-100xxxxxxxxxx:topic:2
 
 ---
 
+## Gemini ACP 綁定範例
+
+以下示範將 `#gemini`（topic:101）綁定到 Gemini CLI ACP。
+
+### acpx 設定
+
+`~/.acpx/config.json`：
+
+```json
+{
+  "agents": {
+    "gemini": { "command": "/path/to/gemini --experimental-acp" }
+  }
+}
+```
+
+> 注意：Gemini CLI 使用 `--experimental-acp` flag 啟動 ACP 模式。
+
+### openclaw.json 設定
+
+```json
+{
+  "acp": {
+    "allowedAgents": ["codex", "kiro", "gemini"]
+  },
+  "agents": {
+    "list": [
+      {
+        "id": "gemini-saga",
+        "runtime": {
+          "type": "acp",
+          "acp": { "agent": "gemini" }
+        }
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "type": "acp",
+      "agentId": "gemini-saga",
+      "match": {
+        "channel": "telegram",
+        "accountId": "gemini-saga",
+        "peer": { "kind": "group", "id": "-100xxxxxxxxxx:topic:101" }
+      },
+      "acp": {
+        "mode": "persistent",
+        "cwd": "~/.openclaw/workspace-gemini-saga"
+      }
+    }
+  ]
+}
+```
+
+> 注意：新增 ACP agent 時，務必將其加入 `acp.allowedAgents`，否則會收到 `ACP_SESSION_INIT_FAILED: ACP agent is not allowed by policy` 錯誤。
+
+### per-topic requireMention
+
+```json
+{
+  "channels": {
+    "telegram": {
+      "accounts": {
+        "gemini-saga": {
+          "groups": {
+            "-100xxxxxxxxxx": {
+              "requireMention": false,
+              "topics": {
+                "101": { "requireMention": false }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
 ## 常見問題（FAQ）
 
 **Q：我已經在 openclaw 設定了 OpenAI LLM，為什麼還需要 Codex ACP？**
