@@ -15,6 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -30,10 +31,11 @@ jobs:
 
       - name: Sync main with upstream
         run: |
-          git checkout main
-          # 檢查是否有分歧
+          # 明確指定從 origin/main checkout
+          git checkout -B main origin/main
+          # 嘗試 fast-forward
           if ! git merge --ff-only upstream/main 2>/dev/null; then
-            # 無法 fast-forward，嘗試 reset
+            # 無法 fast-forward，直接 reset 到 upstream/main
             git reset --hard upstream/main
           fi
           git push origin main
