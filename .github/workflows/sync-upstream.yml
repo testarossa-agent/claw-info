@@ -28,15 +28,12 @@ jobs:
           git remote add upstream https://github.com/thepagent/claw-info.git
           git fetch upstream
 
-      - name: Sync with upstream (hard reset)
+      - name: Sync main with upstream
         run: |
           git checkout main
-          # 備份 sync workflow（會被 reset 刪除）
-          cp .github/workflows/sync-upstream.yml /tmp/sync-upstream.yml
-          git reset --hard upstream/main
-          # 恢復 sync workflow
-          mkdir -p .github/workflows
-          cp /tmp/sync-upstream.yml .github/workflows/sync-upstream.yml
-          git add .github/workflows/sync-upstream.yml
-          git diff --staged --quiet || git commit -m "chore: sync with upstream"
-          git push origin main --force
+          # 檢查是否有分歧
+          if ! git merge --ff-only upstream/main 2>/dev/null; then
+            # 無法 fast-forward，嘗試 reset
+            git reset --hard upstream/main
+          fi
+          git push origin main
