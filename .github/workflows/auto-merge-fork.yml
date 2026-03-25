@@ -19,6 +19,12 @@ jobs:
       github.event.workflow_run.conclusion == 'action_required'
     runs-on: ubuntu-latest
     steps:
+      - name: Generate App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Auto-merge fork PR if approved and checks pass
         uses: actions/github-script@v7
         with:
@@ -74,5 +80,5 @@ jobs:
       - name: Merge as thepagent
         if: env.PR_NUMBER != ''
         env:
-          GH_TOKEN: ${{ secrets.THEPAGENT_PAT }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: gh pr merge ${{ env.PR_NUMBER }} --squash --repo ${{ github.repository }}
