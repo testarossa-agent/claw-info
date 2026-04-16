@@ -8,11 +8,15 @@ freshness: ok
 
 > **本文定位：Field Notes（實戰踩坑記錄）**
 >
-> 這篇文件是一份第一手實踐記錄——在 `docs/howto/exec-strategy-patterns.md` 存在之前，我們先踩坑、排查、跑通，事後發現實踐結論與 howto 框架高度吻合。
+> ⚠️ **先讀哪份？**
+> - **想了解三種策略的概念、決策邏輯、完整 config 參考** → 請先看 [`docs/howto/exec-strategy-patterns.md`](../docs/howto/exec-strategy-patterns.md)（canonical howto）
+> - **已看過 howto，正在排查 `approval-timeout` / `allowlist miss` 的具體問題** → 你在對的地方，繼續往下
 >
-> 如果你想了解三種策略的概念與決策邏輯，請先看 [`docs/howto/exec-strategy-patterns.md`](../docs/howto/exec-strategy-patterns.md)。
->
-> 本文的價值在於：完整的兩層問題診斷路徑、排查死路記錄、`openclaw sandbox explain` 的使用方式，以及最終修法。適合在出現 `approval-timeout` 或 `allowlist miss` 時對照參考。
+> 這篇文件是一份**第一手實踐記錄**，不是 howto 的摘要或替代品。時序上：我們先踩坑、排查、跑通，事後發現結論與 howto 框架高度吻合。本文的獨特價值在於：
+> - 兩層問題診斷模型的完整推導路徑
+> - 排查死路記錄（哪些方向走不通、為什麼）
+> - `openclaw sandbox explain` 的實際使用方式
+> - 最終修法的完整 config
 
 **對應版本：** OpenClaw ≥ 2026.4.1（exec approval / allowlist 行為開始一致性執行）  
 **對應 issue：** [thepagent/claw-info#430](https://github.com/thepagent/claw-info/issues/430)  
@@ -44,7 +48,8 @@ Exec denied (gateway id=..., approval-timeout)
 ```
 Layer 1：exec-approvals.json
   → 這個命令是否在 allowlist 內？
-  → allowlist miss 時，fallback 是 deny / ask / allow？
+  → allowlist miss 時，askFallback 決定行為：deny / ask / allow / full
+    （完整 enum 定義見 docs/howto/exec-strategy-patterns.md）
 
 Layer 2：審批轉發通道（approval channel）
   → 需要審批時，審批請求能不能送到你的對話介面？
@@ -82,6 +87,7 @@ Layer 2：審批轉發通道（approval channel）
 ```
 
 行為：allowlist 外的命令一律 deny，不彈審批，不放行。  
+*（實測：OpenClaw 2026.4.1，Debian VPS；allowlist miss 返回 `Exec denied (approval-timeout)`，無審批對話框出現）*  
 **優點：** 安全邊界清晰，blast radius 最小。  
 **代價：** 頻繁出現 `allowlist miss`，需持續維護白名單。
 
@@ -110,8 +116,9 @@ Layer 2：審批轉發通道（approval channel）
 ```
 
 行為：wildcard allowlist + miss 時直接放行，不彈審批。  
+*（實測：OpenClaw 2026.4.1，Debian VPS；`askFallback: "allow"` 配合 wildcard pattern，任何命令直接執行，不經審批）*  
 **優點：** 零摩擦，agent 可自由執行任何命令。  
-**⚠️ 注意：** 任何能觸發 agent 的人都能間接執行任意命令。**僅限可信封閉環境使用，不適合面向多人的 Discord / 公開 Telegram bot。**
+**⚠️ 前提：** 僅適合個人 VPS / 開發機等完全可信的封閉環境；此設定本身不作任何安全過濾。
 
 ---
 
