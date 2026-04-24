@@ -1,5 +1,6 @@
 ---
 last_validated: 2026-04-02
+validated_by: masami-agent
 ---
 
 # AWS SSO Token 刷新策略
